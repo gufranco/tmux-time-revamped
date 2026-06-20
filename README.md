@@ -70,7 +70,9 @@ run-shell ~/.tmux/plugins/tmux-time-revamped/time-revamped.tmux
 | `@time_revamped_evening_color` | `#[fg=magenta]` | color for hours 18 to 22 |
 | `@time_revamped_night_color` | `#[fg=blue]` | color for hours 22 to 05 |
 | `@time_revamped_weekend_color` | `#[fg=brightblack]` | color used on Saturday and Sunday, overriding the hour |
-| `@time_revamped_{morning,day,afternoon,evening,night,weekend}_icon` | empty | optional glyph shown before the time, for example a Nerd Font sun or moon |
+| `@time_revamped_{sunrise,morning,day,afternoon,sunset,evening,night,weekend}_icon` | empty | optional glyph shown before the time, for example a Nerd Font sun or moon |
+
+Icons use seven hour buckets, finer than the five color buckets, so a dawn glyph (`sunrise`, hours 05 to 08) and a dusk glyph (`sunset`, hours 18 to 20) can be set independently. Every icon option defaults to empty, so no Nerd Font is required unless you choose to configure one.
 
 A world clock in full mode renders as the timezone abbreviation, an optional period icon, then the time. Compact mode replaces the abbreviation with short city initials, for example `NY` for `America/New_York`.
 

@@ -27,6 +27,24 @@ teardown() {
   [[ "$(_time_period 13 0)" == "day" ]]
 }
 
+@test "render.sh - icon_period_of_hour buckets the day with sunrise and sunset" {
+  [[ "$(icon_period_of_hour 2)" == "night" ]]
+  [[ "$(icon_period_of_hour 23)" == "night" ]]
+  [[ "$(icon_period_of_hour 6)" == "sunrise" ]]
+  [[ "$(icon_period_of_hour 9)" == "morning" ]]
+  [[ "$(icon_period_of_hour 13)" == "day" ]]
+  [[ "$(icon_period_of_hour 16)" == "afternoon" ]]
+  [[ "$(icon_period_of_hour 19)" == "sunset" ]]
+  [[ "$(icon_period_of_hour 21)" == "evening" ]]
+  [[ "$(icon_period_of_hour bogus)" == "night" ]]
+}
+
+@test "render.sh - _time_icon_period lets weekend override the hour" {
+  [[ "$(_time_icon_period 6 1)" == "weekend" ]]
+  [[ "$(_time_icon_period 6 0)" == "sunrise" ]]
+  [[ "$(_time_icon_period 19 0)" == "sunset" ]]
+}
+
 @test "render.sh - _time_default_color covers every period" {
   [[ "$(_time_default_color morning)" == "#[fg=yellow]" ]]
   [[ "$(_time_default_color day)" == "#[fg=green]" ]]
@@ -48,6 +66,15 @@ teardown() {
   [[ -z "$(time_render_period_icon 8 0)" ]]
   set_tmux_option "@time_revamped_morning_icon" "M"
   [[ "$(time_render_period_icon 8 0)" == "M" ]]
+}
+
+@test "render.sh - time_render_period_icon selects sunrise and sunset glyphs" {
+  [[ -z "$(time_render_period_icon 6 0)" ]]
+  [[ -z "$(time_render_period_icon 19 0)" ]]
+  set_tmux_option "@time_revamped_sunrise_icon" "up"
+  set_tmux_option "@time_revamped_sunset_icon" "down"
+  [[ "$(time_render_period_icon 6 0)" == "up" ]]
+  [[ "$(time_render_period_icon 19 0)" == "down" ]]
 }
 
 @test "render.sh - time_render_zone_full shows abbr and time, icon optional" {

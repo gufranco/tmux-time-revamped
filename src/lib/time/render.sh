@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 #
 # render.sh: map a timezone hour to a period color and icon, and assemble a
-# world-clock entry. The period buckets follow the day's rhythm: morning, day,
-# afternoon, evening, night, with a weekend override.
+# world-clock entry. Color uses five buckets that follow the day's rhythm:
+# morning, day, afternoon, evening, night, with a weekend override. Icon uses
+# seven finer buckets that add sunrise and sunset, so a dawn or dusk glyph can
+# be configured separately.
 
 [[ -n "${_TIME_REVAMPED_RENDER_LOADED:-}" ]] && return 0
 _TIME_REVAMPED_RENDER_LOADED=1
@@ -36,6 +38,37 @@ _time_period() {
   period_of_hour "${1}"
 }
 
+# icon_period_of_hour HOUR -> a finer-grained period for icon selection. Unlike
+# period_of_hour, this splits out sunrise and sunset so a dawn or dusk glyph can
+# be configured. Buckets are contiguous: night >=22 || <5, sunrise 5-7,
+# morning 8-11, day 12-13, afternoon 14-17, sunset 18-19, evening 20-21.
+icon_period_of_hour() {
+  local h="${1:-0}"
+  [[ "${h}" =~ ^[0-9]+$ ]] || h=0
+  if (( h >= 22 || h < 5 )); then
+    echo "night"
+  elif (( h < 8 )); then
+    echo "sunrise"
+  elif (( h < 12 )); then
+    echo "morning"
+  elif (( h < 14 )); then
+    echo "day"
+  elif (( h < 18 )); then
+    echo "afternoon"
+  elif (( h < 20 )); then
+    echo "sunset"
+  else
+    echo "evening"
+  fi
+}
+
+# _time_icon_period HOUR WEEKEND -> the icon period name, weekend overriding the
+# hour. Uses the finer icon buckets so sunrise and sunset are selectable.
+_time_icon_period() {
+  [[ "${2}" == "1" ]] && { echo "weekend"; return 0; }
+  icon_period_of_hour "${1}"
+}
+
 # Default colors per period. Override with @time_revamped_<period>_color.
 _time_default_color() {
   case "${1}" in
@@ -57,7 +90,7 @@ time_render_period_color() {
 
 time_render_period_icon() {
   local period
-  period=$(_time_period "${1}" "${2}")
+  period=$(_time_icon_period "${1}" "${2}")
   get_tmux_option "@time_revamped_${period}_icon" ""
 }
 
@@ -82,6 +115,8 @@ time_render_zone_compact() {
 
 export -f period_of_hour
 export -f _time_period
+export -f icon_period_of_hour
+export -f _time_icon_period
 export -f _time_default_color
 export -f time_render_period_color
 export -f time_render_period_icon
