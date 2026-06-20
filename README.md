@@ -76,6 +76,76 @@ Icons use seven hour buckets, finer than the five color buckets, so a dawn glyph
 
 A world clock in full mode renders as the timezone abbreviation, an optional period icon, then the time. Compact mode replaces the abbreviation with short city initials, for example `NY` for `America/New_York`.
 
+## Theme color suggestions
+
+The defaults use 16 ANSI color names that the active terminal theme remaps, so the periods match any theme out of the box; for exact hex values, copy one block below.
+
+### Catppuccin Mocha
+
+```tmux
+set -g @time_revamped_morning_color '#[fg=#f9e2af]'
+set -g @time_revamped_day_color '#[fg=#a6e3a1]'
+set -g @time_revamped_afternoon_color '#[fg=#94e2d5]'
+set -g @time_revamped_evening_color '#[fg=#cba6f7]'
+set -g @time_revamped_night_color '#[fg=#89b4fa]'
+set -g @time_revamped_weekend_color '#[fg=#a6adc8]'
+```
+
+### Dracula
+
+```tmux
+set -g @time_revamped_morning_color '#[fg=#f1fa8c]'
+set -g @time_revamped_day_color '#[fg=#50fa7b]'
+set -g @time_revamped_afternoon_color '#[fg=#8be9fd]'
+set -g @time_revamped_evening_color '#[fg=#ff79c6]'
+set -g @time_revamped_night_color '#[fg=#bd93f9]'
+set -g @time_revamped_weekend_color '#[fg=#6272a4]'
+```
+
+### Nord
+
+```tmux
+set -g @time_revamped_morning_color '#[fg=#ebcb8b]'
+set -g @time_revamped_day_color '#[fg=#a3be8c]'
+set -g @time_revamped_afternoon_color '#[fg=#88c0d0]'
+set -g @time_revamped_evening_color '#[fg=#b48ead]'
+set -g @time_revamped_night_color '#[fg=#81a1c1]'
+set -g @time_revamped_weekend_color '#[fg=#d8dee9]'
+```
+
+### Gruvbox Dark
+
+```tmux
+set -g @time_revamped_morning_color '#[fg=#fabd2f]'
+set -g @time_revamped_day_color '#[fg=#b8bb26]'
+set -g @time_revamped_afternoon_color '#[fg=#8ec07c]'
+set -g @time_revamped_evening_color '#[fg=#d3869b]'
+set -g @time_revamped_night_color '#[fg=#83a598]'
+set -g @time_revamped_weekend_color '#[fg=#a89984]'
+```
+
+### Tokyo Night
+
+```tmux
+set -g @time_revamped_morning_color '#[fg=#e0af68]'
+set -g @time_revamped_day_color '#[fg=#9ece6a]'
+set -g @time_revamped_afternoon_color '#[fg=#7dcfff]'
+set -g @time_revamped_evening_color '#[fg=#bb9af7]'
+set -g @time_revamped_night_color '#[fg=#7aa2f7]'
+set -g @time_revamped_weekend_color '#[fg=#565f89]'
+```
+
+### Solarized Dark
+
+```tmux
+set -g @time_revamped_morning_color '#[fg=#b58900]'
+set -g @time_revamped_day_color '#[fg=#859900]'
+set -g @time_revamped_afternoon_color '#[fg=#2aa198]'
+set -g @time_revamped_evening_color '#[fg=#d33682]'
+set -g @time_revamped_night_color '#[fg=#268bd2]'
+set -g @time_revamped_weekend_color '#[fg=#586e75]'
+```
+
 ## Support by platform and architecture
 
 Works on every supported platform and architecture with built-in tools, no extra package required. The local clock and every world clock use the system `date` and the operating system timezone database, which are present on Linux (x86_64 and arm64) and macOS (Intel and Apple Silicon). Period coloring, weekend detection, and compact labels are computed in shell and behave identically everywhere.

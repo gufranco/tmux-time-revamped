@@ -62,6 +62,36 @@ teardown() {
   [[ "$(time_render_period_color 8 0)" == "#[fg=red]" ]]
 }
 
+@test "render.sh - time_render_period_color passes named color spec verbatim" {
+  set_tmux_option "@time_revamped_morning_color" "#[fg=red]"
+  [[ "$(time_render_period_color 8 0)" == "#[fg=red]" ]]
+}
+
+@test "render.sh - time_render_period_color passes 256 color spec verbatim" {
+  set_tmux_option "@time_revamped_morning_color" "#[fg=colour203]"
+  [[ "$(time_render_period_color 8 0)" == "#[fg=colour203]" ]]
+}
+
+@test "render.sh - time_render_period_color passes hex fg spec verbatim" {
+  set_tmux_option "@time_revamped_morning_color" "#[fg=#f38ba8]"
+  [[ "$(time_render_period_color 8 0)" == "#[fg=#f38ba8]" ]]
+}
+
+@test "render.sh - time_render_period_color passes hex fg and bg spec verbatim" {
+  set_tmux_option "@time_revamped_morning_color" "#[fg=#f38ba8,bg=#1e1e2e]"
+  [[ "$(time_render_period_color 8 0)" == "#[fg=#f38ba8,bg=#1e1e2e]" ]]
+}
+
+@test "render.sh - time_render_period_color passes bright color spec verbatim" {
+  set_tmux_option "@time_revamped_morning_color" "#[fg=brightred]"
+  [[ "$(time_render_period_color 8 0)" == "#[fg=brightred]" ]]
+}
+
+@test "render.sh - time_render_period_color passes a hex spec through the weekend override" {
+  set_tmux_option "@time_revamped_weekend_color" "#[fg=#a6adc8]"
+  [[ "$(time_render_period_color 8 1)" == "#[fg=#a6adc8]" ]]
+}
+
 @test "render.sh - time_render_period_icon is empty until configured" {
   [[ -z "$(time_render_period_icon 8 0)" ]]
   set_tmux_option "@time_revamped_morning_icon" "M"
