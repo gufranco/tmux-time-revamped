@@ -8,7 +8,7 @@
 
 </div>
 
-**4** placeholders · **2** platforms · **72** tests · **95%+** coverage
+**5** placeholders · **2** platforms · **89** tests · **95%+** coverage
 
 A local date and time plus any number of world clocks, each colored by the time of day at that location. Reading the clock is a single `date` call, so the status line computes it live and returns instantly. No temp files are touched, all configuration lives in tmux options.
 
@@ -35,6 +35,7 @@ Add any of these to `status-left` or `status-right`:
 | `#{time_date}` | local date only |
 | `#{time_clock}` | local time only |
 | `#{time_zones}` | one entry per configured timezone, colored by time of day |
+| `#{time_local}` | the local clock styled like a world clock: place label, time-of-day color, and icon |
 
 ## Install
 
@@ -65,6 +66,7 @@ run-shell ~/.tmux/plugins/tmux-time-revamped/time-revamped.tmux
 | `@time_revamped_compact` | `0` | set to `1` to show short city labels instead of timezone abbreviations |
 | `@time_revamped_zone_separator` | a space | text placed between world-clock entries |
 | `@time_revamped_weekend_override` | `1` | set to `0` to keep each world clock's time-of-day color and icon on weekends instead of the weekend color |
+| `@time_revamped_local_label` | empty | label for `#{time_local}`; empty derives the city from the system timezone (auto-updates across zones while traveling), or set a fixed name like `Rio` |
 | `@time_revamped_morning_color` | `#[fg=yellow]` | color for hours 05 to 12 |
 | `@time_revamped_day_color` | `#[fg=green]` | color for hours 12 to 14 |
 | `@time_revamped_afternoon_color` | `#[fg=cyan]` | color for hours 14 to 18 |

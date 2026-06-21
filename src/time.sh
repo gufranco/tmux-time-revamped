@@ -55,12 +55,35 @@ read_zones() {
   echo "${out}"
 }
 
+# read_local -> the local clock rendered like a world clock: a place label, a
+# time-of-day color and icon, and the time. The label is @time_revamped_local_label
+# when set, else the local timezone city (auto-updates when the system zone
+# changes while traveling). Honors the 24H/12H and weekend-override options.
+read_local() {
+  local label compact tpat hour tm dow weekend override
+  compact=$(get_tmux_option "@time_revamped_compact" "0")
+  tpat=$(time_strftime "$(get_tmux_option "@time_revamped_time_format" "24H")")
+  [[ -z "${tpat}" ]] && tpat="%H:%M"
+  IFS='|' read -r hour tm dow < <(_now_local "%H|${tpat}|%u")
+  [[ -z "${tm}" ]] && return 0
+  [[ "${hour}" =~ ^[0-9]+$ ]] && hour=$(( 10#${hour} )) || hour=0
+  if [[ "$(get_tmux_option "@time_revamped_weekend_override" "1")" == "1" ]]; then
+    weekend=$(tz_is_weekend "${dow}")
+  else
+    weekend=0
+  fi
+  override=$(get_tmux_option "@time_revamped_local_label" "")
+  label="${override:-$(local_city_label)}"
+  time_render_zone_compact "${label}" "${tm}" "${hour}" "${weekend}"
+}
+
 main() {
   case "${1:-}" in
     datetime) read_datetime ;;
     date)     read_date ;;
     clock)    read_clock ;;
     zones)    read_zones ;;
+    local)    read_local ;;
     *)        return 0 ;;
   esac
 }

@@ -77,6 +77,23 @@ teardown() {
   [[ "${output}" == *" | "* ]]
 }
 
+@test "time.sh dispatcher - local renders the place, icon, and time" {
+  _local_tz_name() { echo "America/Sao_Paulo"; }
+  _now_local() { echo "14|14:30|5"; }
+  set_tmux_option "@time_revamped_afternoon_color" "#[fg=teal]"
+  set_tmux_option "@time_revamped_afternoon_icon" "S"
+  run main local
+  [[ "${output}" == "#[fg=teal]Sao Paulo S 14:30#[default]" ]]
+}
+
+@test "time.sh dispatcher - local label can be overridden" {
+  _local_tz_name() { echo "America/Sao_Paulo"; }
+  _now_local() { echo "14|14:30|5"; }
+  set_tmux_option "@time_revamped_local_label" "Rio"
+  run main local
+  [[ "${output}" == *"Rio 14:30"* ]]
+}
+
 @test "time.sh dispatcher - unknown subcommand produces no output" {
   run main bogus
   [[ -z "${output}" ]]

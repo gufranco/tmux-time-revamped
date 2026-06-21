@@ -57,9 +57,34 @@ tz_is_weekend() {
   echo 0
 }
 
+# local_city_label -> the local timezone city with underscores as spaces, e.g.
+# America/Sao_Paulo -> "Sao Paulo". Empty when the zone cannot be resolved.
+local_city_label() {
+  local zone city
+  zone=$(_local_tz_name)
+  [[ -z "${zone}" ]] && { echo ""; return 0; }
+  city="${zone##*/}"
+  echo "${city//_/ }"
+}
+
 # Host-probe seams. Tests override these.
 _now_local() { date +"${1}" 2>/dev/null; }
 _now_tz() { TZ="${1}" date +"${2}" 2>/dev/null; }
+
+# _local_tz_name -> the local IANA timezone, e.g. America/Sao_Paulo. Prefers $TZ,
+# then the /etc/localtime symlink target. Empty when neither resolves.
+_local_tz_name() {
+  if [[ -n "${TZ:-}" ]]; then
+    echo "${TZ}"
+    return 0
+  fi
+  local link
+  link=$(readlink /etc/localtime 2>/dev/null)
+  case "${link}" in
+    *zoneinfo/*) echo "${link#*zoneinfo/}" ;;
+    *) echo "" ;;
+  esac
+}
 
 # read_date -> the formatted local date, empty when hidden.
 read_date() {
@@ -95,6 +120,8 @@ export -f date_strftime
 export -f time_strftime
 export -f compact_tz_label
 export -f tz_is_weekend
+export -f local_city_label
+export -f _local_tz_name
 export -f _now_local
 export -f _now_tz
 export -f read_date

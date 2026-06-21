@@ -78,8 +78,24 @@ teardown() {
   [[ "$(read_datetime)" == "2026-06-20" ]]
 }
 
+@test "time.sh - local_city_label turns the zone city into a readable label" {
+  _local_tz_name() { echo "America/Sao_Paulo"; }
+  [[ "$(local_city_label)" == "Sao Paulo" ]]
+  _local_tz_name() { echo "Asia/Tokyo"; }
+  [[ "$(local_city_label)" == "Tokyo" ]]
+  _local_tz_name() { echo ""; }
+  [[ -z "$(local_city_label)" ]]
+}
+
+@test "time.sh - _local_tz_name prefers the TZ variable" {
+  TZ="Europe/Lisbon"
+  [[ "$(_local_tz_name)" == "Europe/Lisbon" ]]
+  unset TZ
+}
+
 @test "time.sh - host-probe seams are callable" {
   run _now_local "%H:%M"
   run _now_tz UTC "%H"
+  run _local_tz_name
   true
 }

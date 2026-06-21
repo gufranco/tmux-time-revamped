@@ -13,6 +13,7 @@ placeholders=(
   "\#{time_date}"
   "\#{time_clock}"
   "\#{time_zones}"
+  "\#{time_local}"
 )
 
 commands=(
@@ -20,6 +21,7 @@ commands=(
   "#(${TIME_CMD} date)"
   "#(${TIME_CMD} clock)"
   "#(${TIME_CMD} zones)"
+  "#(${TIME_CMD} local)"
 )
 
 interpolate() {
