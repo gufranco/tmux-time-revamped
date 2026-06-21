@@ -117,3 +117,16 @@ teardown() {
   set_tmux_option "@time_revamped_evening_color" "#[fg=magenta]"
   [[ "$(time_render_zone_compact NY 19:30 19 0)" == "#[fg=magenta]NY 19:30#[default]" ]]
 }
+
+@test "render.sh - time_render_zone_compact shows the period icon too" {
+  set_tmux_option "@time_revamped_evening_color" "#[fg=magenta]"
+  set_tmux_option "@time_revamped_evening_icon" "M"
+  [[ "$(time_render_zone_compact NY 20:30 20 0)" == "#[fg=magenta]NY M 20:30#[default]" ]]
+}
+
+@test "render.sh - the reset is configurable for theme integration" {
+  set_tmux_option "@time_revamped_evening_color" "#[fg=magenta]"
+  set_tmux_option "@time_revamped_reset" "#[fg=default]"
+  [[ "$(time_render_zone_compact NY 19:30 19 0)" == "#[fg=magenta]NY 19:30#[fg=default]" ]]
+  [[ "$(time_render_zone_full EST 09:30 9 0)" == *"#[fg=default]" ]]
+}

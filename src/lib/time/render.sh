@@ -13,7 +13,9 @@ _TIME_RENDER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "${_TIME_RENDER_DIR}/../tmux/tmux-ops.sh"
 
-_TIME_RESET="#[default]"
+# The reset placed after each entry. Default resets fg and bg. A theme can set
+# @time_revamped_reset to "#[fg=default]" to keep its background, or "" for none.
+_time_reset() { get_tmux_option "@time_revamped_reset" "#[default]"; }
 
 # period_of_hour HOUR -> night|morning|day|afternoon|evening for an integer hour.
 period_of_hour() {
@@ -96,23 +98,31 @@ time_render_period_icon() {
 
 # time_render_zone_full ABBR TIME HOUR WEEKEND -> "<color><abbr> [icon ]<time><reset>".
 time_render_zone_full() {
-  local abbr="${1}" tm="${2}" color icon
+  local abbr="${1}" tm="${2}" color icon reset
   color=$(time_render_period_color "${3}" "${4}")
   icon=$(time_render_period_icon "${3}" "${4}")
+  reset=$(_time_reset)
   if [[ -n "${icon}" ]]; then
-    echo "${color}${abbr} ${icon} ${tm}${_TIME_RESET}"
+    echo "${color}${abbr} ${icon} ${tm}${reset}"
   else
-    echo "${color}${abbr} ${tm}${_TIME_RESET}"
+    echo "${color}${abbr} ${tm}${reset}"
   fi
 }
 
-# time_render_zone_compact LABEL TIME HOUR WEEKEND -> "<color><label> <time><reset>".
+# time_render_zone_compact LABEL TIME HOUR WEEKEND -> "<color><label> [icon ]<time><reset>".
 time_render_zone_compact() {
-  local label="${1}" tm="${2}" color
+  local label="${1}" tm="${2}" color icon reset
   color=$(time_render_period_color "${3}" "${4}")
-  echo "${color}${label} ${tm}${_TIME_RESET}"
+  icon=$(time_render_period_icon "${3}" "${4}")
+  reset=$(_time_reset)
+  if [[ -n "${icon}" ]]; then
+    echo "${color}${label} ${icon} ${tm}${reset}"
+  else
+    echo "${color}${label} ${tm}${reset}"
+  fi
 }
 
+export -f _time_reset
 export -f period_of_hour
 export -f _time_period
 export -f icon_period_of_hour
