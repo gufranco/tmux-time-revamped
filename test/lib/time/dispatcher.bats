@@ -94,6 +94,27 @@ teardown() {
   [[ "${output}" == *"Rio 14:30"* ]]
 }
 
+@test "time.sh dispatcher - local uses the geoip city when enabled" {
+  _now_local() { echo "14|14:30|5"; }
+  _read_geoip() { echo "Tokyo"; }
+  has_command() { return 0; }
+  export CACHE_SYNC=1
+  set_tmux_option "@time_revamped_local_source" "geoip"
+  run main local
+  [[ "${output}" == *"Tokyo 14:30"* ]]
+}
+
+@test "time.sh dispatcher - geoip falls back to the timezone city on failure" {
+  _local_tz_name() { echo "Asia/Tokyo"; }
+  _now_local() { echo "14|14:30|5"; }
+  _read_geoip() { echo ""; }
+  has_command() { return 0; }
+  export CACHE_SYNC=1
+  set_tmux_option "@time_revamped_local_source" "geoip"
+  run main local
+  [[ "${output}" == *"Tokyo 14:30"* ]]
+}
+
 @test "time.sh dispatcher - unknown subcommand produces no output" {
   run main bogus
   [[ -z "${output}" ]]

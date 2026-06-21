@@ -9,12 +9,20 @@
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+export CACHE_PREFIX="time_revamped"
+
 # shellcheck source=/dev/null
 source "${PLUGIN_DIR}/src/lib/tmux/tmux-ops.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/utils/has-command.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/utils/cache.sh"
 # shellcheck source=/dev/null
 source "${PLUGIN_DIR}/src/lib/time/time.sh"
 # shellcheck source=/dev/null
 source "${PLUGIN_DIR}/src/lib/time/render.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/time/geoip.sh"
 
 # read_zones -> the configured world clocks, formatted and joined.
 read_zones() {
@@ -55,6 +63,40 @@ read_zones() {
   echo "${out}"
 }
 
+# _geoip_max_age -> the geoip cache lifetime in seconds, from a minutes option.
+_geoip_max_age() {
+  local m
+  m=$(get_tmux_option "@time_revamped_geoip_interval" "30")
+  [[ "${m}" =~ ^[0-9]+$ ]] || m=30
+  echo $(( m * 60 ))
+}
+
+# geoip_refresh -> the cache worker: fetch the city once and store it. A failed
+# fetch keeps the last good value, so a brief outage does not blank the label.
+geoip_refresh() {
+  local endpoint body city
+  endpoint=$(get_tmux_option "@time_revamped_geoip_endpoint" "https://ipinfo.io/city")
+  body=$(_read_geoip "${endpoint}")
+  city=$(geoip_parse_city "${body}")
+  if [[ -n "${city}" ]]; then
+    cache_set geoip_city "${city}"
+  else
+    cache_set geoip_city "$(cache_get geoip_city)"
+  fi
+}
+
+# _local_label_auto -> the auto-detected place label. With geoip enabled and curl
+# present, the cached city wins, refreshed in the background so the render never
+# waits on the network. Otherwise it falls back to the system timezone city.
+_local_label_auto() {
+  local city
+  if [[ "$(get_tmux_option "@time_revamped_local_source" "timezone")" == "geoip" ]] && has_command curl; then
+    city=$(cache_render geoip_city "$(_geoip_max_age)" geoip_refresh)
+    [[ -n "${city}" ]] && { printf '%s' "${city}"; return 0; }
+  fi
+  local_city_label
+}
+
 # read_local -> the local clock rendered like a world clock: a place label, a
 # time-of-day color and icon, and the time. The label is @time_revamped_local_label
 # when set, else the local timezone city (auto-updates when the system zone
@@ -73,7 +115,7 @@ read_local() {
     weekend=0
   fi
   override=$(get_tmux_option "@time_revamped_local_label" "")
-  label="${override:-$(local_city_label)}"
+  label="${override:-$(_local_label_auto)}"
   time_render_zone_compact "${label}" "${tm}" "${hour}" "${weekend}"
 }
 
