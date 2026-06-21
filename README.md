@@ -60,10 +60,11 @@ run-shell ~/.tmux/plugins/tmux-time-revamped/time-revamped.tmux
 | Option | Default | Meaning |
 |--------|---------|---------|
 | `@time_revamped_date_format` | `YMD` | one of `YMD`, `MD`, `DM`, `MDY`, `DMY`, `hide` |
-| `@time_revamped_time_format` | `24H` | one of `24H`, `12H`, `hide` |
+| `@time_revamped_time_format` | `24H` | one of `24H`, `12H`, `hide`; applies to the local clock and to every world clock |
 | `@time_revamped_timezones` | empty | comma or space separated TZ names, for example `America/New_York, Europe/London` |
 | `@time_revamped_compact` | `0` | set to `1` to show short city labels instead of timezone abbreviations |
 | `@time_revamped_zone_separator` | a space | text placed between world-clock entries |
+| `@time_revamped_weekend_override` | `1` | set to `0` to keep each world clock's time-of-day color and icon on weekends instead of the weekend color |
 | `@time_revamped_morning_color` | `#[fg=yellow]` | color for hours 05 to 12 |
 | `@time_revamped_day_color` | `#[fg=green]` | color for hours 12 to 14 |
 | `@time_revamped_afternoon_color` | `#[fg=cyan]` | color for hours 14 to 18 |
