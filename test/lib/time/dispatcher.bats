@@ -50,6 +50,22 @@ teardown() {
   [[ "${output}" == "#[fg=yellow]NY 09:30#[default]" ]]
 }
 
+@test "time.sh dispatcher - zones use custom labels matched by position" {
+  set_tmux_option "@time_revamped_timezones" "America/New_York, Asia/Tokyo"
+  set_tmux_option "@time_revamped_compact" "1"
+  set_tmux_option "@time_revamped_zone_labels" "NYC, Tokyo"
+  run main zones
+  [[ "${output}" == *"NYC 09:30"* ]]
+  [[ "${output}" == *"Tokyo 09:30"* ]]
+}
+
+@test "time.sh dispatcher - a missing custom label falls back to the default" {
+  set_tmux_option "@time_revamped_timezones" "America/New_York"
+  set_tmux_option "@time_revamped_compact" "1"
+  run main zones
+  [[ "${output}" == "#[fg=yellow]NY 09:30#[default]" ]]
+}
+
 @test "time.sh dispatcher - zones honor the 24H/12H time format" {
   set_tmux_option "@time_revamped_timezones" "America/New_York"
   run main zones

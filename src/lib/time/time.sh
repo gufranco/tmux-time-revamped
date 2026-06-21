@@ -51,6 +51,19 @@ compact_tz_label() {
   fi
 }
 
+# zone_label_at INDEX CSV -> the trimmed label at zero-based INDEX in a comma
+# separated list, empty when absent. Labels may contain spaces, so only commas
+# separate them, for example "Los Angeles, New York, Tokyo".
+zone_label_at() {
+  local idx="${1}" item arr=()
+  local IFS=','
+  read -ra arr <<< "${2}"
+  item="${arr[idx]:-}"
+  item="${item#"${item%%[![:space:]]*}"}"
+  item="${item%"${item##*[![:space:]]}"}"
+  printf '%s' "${item}"
+}
+
 # tz_is_weekend DOW -> 1 on Saturday (6) or Sunday (7), else 0.
 tz_is_weekend() {
   [[ "${1}" == "6" || "${1}" == "7" ]] && { echo 1; return 0; }
@@ -119,6 +132,7 @@ read_datetime() {
 export -f date_strftime
 export -f time_strftime
 export -f compact_tz_label
+export -f zone_label_at
 export -f tz_is_weekend
 export -f local_city_label
 export -f _local_tz_name

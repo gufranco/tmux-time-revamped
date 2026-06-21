@@ -27,10 +27,14 @@ source "${PLUGIN_DIR}/src/lib/time/geoip.sh"
 # read_zones -> the configured world clocks, formatted and joined.
 read_zones() {
   local zones compact sep out="" tz hour tm abbr dow weekend entry wk_override tpat
+  local labels_csv custom label i
   zones=$(get_tmux_option "@time_revamped_timezones" "")
   [[ -z "${zones}" ]] && return 0
   compact=$(get_tmux_option "@time_revamped_compact" "0")
   sep=$(get_tmux_option "@time_revamped_zone_separator" " ")
+  # Optional per-zone labels, comma separated and matched to the timezones by
+  # position, for example "Los Angeles, New York, Tokyo".
+  labels_csv=$(get_tmux_option "@time_revamped_zone_labels" "")
   # When off, world clocks keep their time-of-day color and icon on weekends
   # instead of switching to the weekend color.
   wk_override=$(get_tmux_option "@time_revamped_weekend_override" "1")
@@ -42,7 +46,8 @@ read_zones() {
 
   local list=() IFS=$', '
   read -ra list <<< "${zones}"
-  for tz in "${list[@]}"; do
+  for (( i = 0; i < ${#list[@]}; i++ )); do
+    tz="${list[i]}"
     [[ -z "${tz}" ]] && continue
     IFS='|' read -r hour tm abbr dow < <(_now_tz "${tz}" "%H|${tpat}|%Z|%u") || continue
     [[ -z "${tm}" ]] && continue
@@ -52,10 +57,13 @@ read_zones() {
     else
       weekend=0
     fi
+    custom=$(zone_label_at "${i}" "${labels_csv}")
     if [[ "${compact}" == "1" ]]; then
-      entry=$(time_render_zone_compact "$(compact_tz_label "${tz}")" "${tm}" "${hour}" "${weekend}")
+      label="${custom:-$(compact_tz_label "${tz}")}"
+      entry=$(time_render_zone_compact "${label}" "${tm}" "${hour}" "${weekend}")
     else
-      entry=$(time_render_zone_full "${abbr}" "${tm}" "${hour}" "${weekend}")
+      label="${custom:-${abbr}}"
+      entry=$(time_render_zone_full "${label}" "${tm}" "${hour}" "${weekend}")
     fi
     [[ -n "${out}" ]] && out="${out}${sep}"
     out="${out}${entry}"

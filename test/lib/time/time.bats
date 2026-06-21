@@ -87,6 +87,14 @@ teardown() {
   [[ -z "$(local_city_label)" ]]
 }
 
+@test "time.sh - zone_label_at returns the trimmed label at an index" {
+  [[ "$(zone_label_at 0 'Los Angeles, New York, Tokyo')" == "Los Angeles" ]]
+  [[ "$(zone_label_at 1 'Los Angeles, New York, Tokyo')" == "New York" ]]
+  [[ "$(zone_label_at 2 'Los Angeles, New York, Tokyo')" == "Tokyo" ]]
+  [[ -z "$(zone_label_at 3 'Los Angeles, New York, Tokyo')" ]]
+  [[ -z "$(zone_label_at 0 '')" ]]
+}
+
 @test "time.sh - _local_tz_name prefers the TZ variable" {
   TZ="Europe/Lisbon"
   [[ "$(_local_tz_name)" == "Europe/Lisbon" ]]
