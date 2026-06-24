@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-06-23
+
+### Changed
+
+- Self-audit for the family hardening pass. Alongside the clock and date, the
+  plugin renders additional time zones for distributed teams, and the colors are
+  named colors safe under tmux 3.7 format expansion. No code change needed.
+
 ## [1.1.0] - 2026-06-20
 
 ### Added
