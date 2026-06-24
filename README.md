@@ -4,7 +4,7 @@
 
 **Local clock and world clocks in your tmux status bar, without ever blocking the render.**
 
-[![Tests](https://github.com/gufranco/tmux-time-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/gufranco/tmux-time-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tests](https://github.com/gufranco/tmux-time-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/gufranco/tmux-time-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](CHANGELOG.md)
 
 </div>
 
