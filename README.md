@@ -4,7 +4,7 @@
 
 **Local clock and world clocks in your tmux status bar, without ever blocking the render.**
 
-[![Tests](https://github.com/gufranco/tmux-time-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/gufranco/tmux-time-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](CHANGELOG.md)
+[![Tests](https://github.com/tmux-revamped/tmux-time-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-time-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](CHANGELOG.md)
 
 </div>
 
@@ -12,7 +12,7 @@
 
 A local date and time plus any number of world clocks, each colored by the time of day at that location. Reading the clock is a single `date` call, so the status line computes it live and returns instantly. No temp files are touched, all configuration lives in tmux options.
 
-Built from [tmux-plugin-template](https://github.com/gufranco/tmux-plugin-template).
+Built from [tmux-plugin-template](https://github.com/tmux-revamped/tmux-plugin-template).
 
 <table>
 <tr>
@@ -42,7 +42,7 @@ Add any of these to `status-left` or `status-right`:
 With [TPM](https://github.com/tmux-plugins/tpm), add to `~/.tmux.conf`:
 
 ```tmux
-set -g @plugin 'gufranco/tmux-time-revamped'
+set -g @plugin 'tmux-revamped/tmux-time-revamped'
 set -g @time_revamped_timezones 'America/New_York, Europe/London, Asia/Tokyo'
 set -g status-right '#{time} #{time_zones}'
 ```
@@ -52,7 +52,7 @@ Then press `prefix + I` to install.
 Manual install:
 
 ```bash
-git clone https://github.com/gufranco/tmux-time-revamped ~/.tmux/plugins/tmux-time-revamped
+git clone https://github.com/tmux-revamped/tmux-time-revamped ~/.tmux/plugins/tmux-time-revamped
 run-shell ~/.tmux/plugins/tmux-time-revamped/time-revamped.tmux
 ```
 
