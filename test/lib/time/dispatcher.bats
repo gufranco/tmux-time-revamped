@@ -135,3 +135,134 @@ teardown() {
   run main bogus
   [[ -z "${output}" ]]
 }
+
+@test "time.sh dispatcher - epoch subcommand reads the clock seam" {
+  run main epoch
+  [[ "${output}" == "1000000" ]]
+}
+
+@test "time.sh dispatcher - iso subcommand formats ISO 8601" {
+  _now_local() { echo "2026-06-30T14:30:00+0000"; }
+  run main iso
+  [[ "${output}" == "2026-06-30T14:30:00+00:00" ]]
+}
+
+@test "time.sh dispatcher - offset subcommand renders the UTC offset" {
+  _now_local() { echo "+0000"; }
+  run main offset
+  [[ "${output}" == "UTC" ]]
+}
+
+@test "time.sh dispatcher - week and doy subcommands strip leading zeros" {
+  _now_local() { case "$1" in %V) echo "07" ;; %j) echo "181" ;; esac; }
+  run main week
+  [[ "${output}" == "7" ]]
+  run main doy
+  [[ "${output}" == "181" ]]
+}
+
+@test "time.sh dispatcher - until counts down to a target" {
+  _now_local() { echo "2026-06-30 12:00:00"; }
+  set_tmux_option "@time_revamped_countdown_target" "2026-07-01 12:00:00"
+  run main until
+  [[ "${output}" == "1d 0h" ]]
+}
+
+@test "time.sh dispatcher - elapsed measures since the mark" {
+  set_tmux_option "@time_revamped_mark_epoch" "999000"
+  run main elapsed
+  [[ "${output}" == "16m" ]]
+}
+
+@test "time.sh dispatcher - dst warns of an upcoming change" {
+  _tz_offset_for_epoch() { if (( $2 >= 1000000 + 2 * 86400 )); then echo "-0200"; else echo "-0300"; fi; }
+  run main dst
+  [[ "${output}" == "DST in 2d" ]]
+}
+
+@test "time.sh dispatcher - overlap reports the shared window" {
+  _tz_offset_for_epoch() { echo "+0000"; }
+  set_tmux_option "@time_revamped_timezones" "UTC, UTC"
+  run main overlap
+  [[ "${output}" == "overlap 09:00-17:00" ]]
+}
+
+@test "time.sh dispatcher - doctor validates the configured zones" {
+  _tz_exists() { return 0; }
+  set_tmux_option "@time_revamped_timezones" "UTC"
+  run main doctor
+  [[ "${output}" == *"OK   UTC"* ]]
+  [[ "${output}" == *"1 ok, 0 invalid"* ]]
+}
+
+@test "time.sh dispatcher - mark stores the current epoch" {
+  _tmux() { :; }
+  run main mark
+  [[ "$(get_tmux_option "@time_revamped_mark_epoch")" == "1000000" ]]
+}
+
+@test "time.sh dispatcher - toggle-format flips the time format" {
+  run main toggle-format
+  [[ "$(get_tmux_option "@time_revamped_time_format")" == "12H" ]]
+}
+
+@test "time.sh dispatcher - copy sends the timestamp through the seams" {
+  local cap="${TEST_TMPDIR}/cap"
+  _now_local() { echo "2026-06-30T14:30:00+0000"; }
+  _tmux() { printf 'tmux %s\n' "$*" >> "${cap}"; }
+  _clipboard_copy() { printf 'clip %s\n' "$1" >> "${cap}"; }
+  main copy iso
+  grep -q "tmux set-buffer 2026-06-30T14:30:00+00:00" "${cap}"
+  grep -q "clip 2026-06-30T14:30:00+00:00" "${cap}"
+}
+
+@test "time.sh dispatcher - calendar opens a popup without launching one" {
+  local cap="${TEST_TMPDIR}/cap"
+  _tmux() { printf '%s\n' "$*" > "${cap}"; }
+  main calendar
+  grep -q "display-popup" "${cap}"
+}
+
+@test "time.sh dispatcher - menu builds the prefix menu" {
+  local cap="${TEST_TMPDIR}/cap"
+  _tmux() { printf '%s\n' "$*" > "${cap}"; }
+  main menu
+  grep -q "display-menu" "${cap}"
+}
+
+@test "time.sh dispatcher - zones show a relative-day badge" {
+  _now_local() { case "$1" in "%Y|%m|%d") echo "2026|06|30" ;; *) echo "X" ;; esac; }
+  _now_tz() { echo "09|09:30|EDT|5|2026|07|01"; }
+  set_tmux_option "@time_revamped_timezones" "America/New_York"
+  set_tmux_option "@time_revamped_compact" "1"
+  set_tmux_option "@time_revamped_relative_day" "1"
+  run main zones
+  [[ "${output}" == *"+1d"* ]]
+}
+
+@test "time.sh dispatcher - zones dim a zone outside working hours" {
+  _now_tz() { echo "02|02:30|EST|5|2026|06|30"; }
+  set_tmux_option "@time_revamped_timezones" "America/New_York"
+  set_tmux_option "@time_revamped_compact" "1"
+  set_tmux_option "@time_revamped_work_hours" "1"
+  run main zones
+  [[ "${output}" == "#[dim]"* ]]
+}
+
+@test "time.sh dispatcher - zones keep a zone inside working hours undimmed" {
+  _now_tz() { echo "09|09:30|EST|5|2026|06|30"; }
+  set_tmux_option "@time_revamped_timezones" "America/New_York"
+  set_tmux_option "@time_revamped_compact" "1"
+  set_tmux_option "@time_revamped_work_hours" "1"
+  run main zones
+  [[ "${output}" != "#[dim]"* ]]
+}
+
+@test "time.sh dispatcher - zones highlight the primary zone" {
+  _now_tz() { echo "09|09:30|EDT|5|2026|06|30"; }
+  set_tmux_option "@time_revamped_timezones" "America/New_York, Europe/London"
+  set_tmux_option "@time_revamped_compact" "1"
+  set_tmux_option "@time_revamped_primary" "0"
+  run main zones
+  [[ "${output}" == "#[bold]"* ]]
+}

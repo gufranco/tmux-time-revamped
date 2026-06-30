@@ -4,11 +4,11 @@
 
 **Local clock and world clocks in your tmux status bar, without ever blocking the render.**
 
-[![Tests](https://github.com/tmux-revamped/tmux-time-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-time-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](CHANGELOG.md)
+[![Tests](https://github.com/tmux-revamped/tmux-time-revamped/actions/workflows/tests.yml/badge.svg)](https://github.com/tmux-revamped/tmux-time-revamped/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
 
 </div>
 
-**5** placeholders · **2** platforms · **89** tests · **95%+** coverage
+**14** placeholders · **2** platforms · **189** tests · **95%+** coverage
 
 A local date and time plus any number of world clocks, each colored by the time of day at that location. Reading the clock is a single `date` call, so the status line computes it live and returns instantly. No temp files are touched, all configuration lives in tmux options.
 
@@ -36,6 +36,15 @@ Add any of these to `status-left` or `status-right`:
 | `#{time_clock}` | local time only |
 | `#{time_zones}` | one entry per configured timezone, colored by time of day |
 | `#{time_local}` | the local clock styled like a world clock: place label, time-of-day color, and icon |
+| `#{time_until}` | countdown to a target datetime, for example `1d 4h` |
+| `#{time_elapsed}` | stopwatch since the last mark, for example `12m` |
+| `#{time_epoch}` | the current unix epoch in seconds |
+| `#{time_iso}` | the local time in ISO 8601, for example `2026-06-30T14:30:00-03:00` |
+| `#{time_offset}` | the local UTC offset, for example `UTC-03:00` |
+| `#{time_week}` | the ISO 8601 week number |
+| `#{time_doy}` | the day of the year |
+| `#{time_dst}` | a `DST in Nd` warning when a clock change is near |
+| `#{time_overlap}` | the shared working-hours window across the configured zones |
 
 ## Install
 
@@ -79,6 +88,25 @@ run-shell ~/.tmux/plugins/tmux-time-revamped/time-revamped.tmux
 | `@time_revamped_weekend_color` | `#[fg=brightblack]` | color used on Saturday and Sunday, overriding the hour |
 | `@time_revamped_{sunrise,morning,day,afternoon,sunset,evening,night,weekend}_icon` | empty | optional glyph shown before the time, for example a Nerd Font sun or moon |
 | `@time_revamped_reset` | `#[default]` | the style reset after each entry; set `#[fg=default]` to keep a surrounding theme's background, or empty for none |
+| `@time_revamped_relative_day` | `0` | set to `1` to append a `+1d`/`-1d` badge when a world clock falls on a different calendar day than the local one |
+| `@time_revamped_work_hours` | `0` | set to `1` to dim any world clock that is outside working hours |
+| `@time_revamped_work_start` | `9` | first working hour, inclusive; also the start of the overlap window |
+| `@time_revamped_work_end` | `17` | last working hour, exclusive; also the end of the overlap window |
+| `@time_revamped_dim_style` | `#[dim]` | the style applied to a zone outside working hours; set `none` to disable |
+| `@time_revamped_primary` | empty | zero-based index of the world clock to highlight |
+| `@time_revamped_primary_style` | `#[bold]` | the style applied to the primary zone; set `none` to disable |
+| `@time_revamped_countdown_target` | empty | target datetime for `#{time_until}`, for example `2026-12-25 09:00` |
+| `@time_revamped_countdown_label` | empty | text shown before the countdown |
+| `@time_revamped_countdown_done` | `now` | text shown once the target has passed |
+| `@time_revamped_dst_zone` | empty | timezone watched by `#{time_dst}`; empty means the local zone |
+| `@time_revamped_dst_horizon` | `14` | how many days ahead `#{time_dst}` looks for a clock change |
+| `@time_revamped_dst_label` | `DST` | text shown before the days-until count |
+| `@time_revamped_overlap_label` | `overlap` | text shown before the `#{time_overlap}` window |
+| `@time_revamped_overlap_none` | `no overlap` | text shown when there is no shared window |
+| `@time_revamped_menu_key` | `T` | prefix key that opens the actions menu; set `off` to disable |
+| `@time_revamped_calendar_key` | `off` | optional prefix key that opens the calendar popup |
+| `@time_revamped_copy_key` | `off` | optional prefix key that copies the ISO timestamp |
+| `@time_revamped_mark_key` | `off` | optional prefix key that sets the stopwatch mark |
 
 Icons use seven hour buckets, finer than the five color buckets, so a dawn glyph (`sunrise`, hours 05 to 08) and a dusk glyph (`sunset`, hours 18 to 20) can be set independently. Every icon option defaults to empty, so no Nerd Font is required unless you choose to configure one.
 
@@ -87,6 +115,20 @@ Both full and compact entries show the period icon when one is configured. Full 
 ### The local place label
 
 `#{time_local}` shows where you are. The default `timezone` source reads the system timezone city offline, which updates whenever you cross into a new zone. The `geoip` source reports the actual city from your public IP, so it distinguishes cities that share a zone and tracks travel everywhere. The geoip request is opt-in, runs in a background worker on the `@time_revamped_geoip_interval`, and never blocks the status line; it caches the last city and falls back to the timezone city when offline. It needs `curl` and sends your IP to the configured endpoint, so enable it only when that is acceptable.
+
+### Working with other time zones
+
+Three opt-in decorations make a row of world clocks easier to read. Set `@time_revamped_relative_day '1'` to append a `+1d` or `-1d` badge whenever a zone is on a different calendar day, the mistake every world clock invites. Set `@time_revamped_work_hours '1'` to dim any zone outside `@time_revamped_work_start` to `@time_revamped_work_end`, so a colleague you should not ping right now fades back. Set `@time_revamped_primary` to the zero-based index of the zone you care about most and it is shown in bold.
+
+`#{time_overlap}` answers "when are we all online" by intersecting the working hours of every configured zone and printing the shared window in your local time, for example `overlap 13:00-17:00`, or the configured "no overlap" message when there is none.
+
+### Countdowns, the stopwatch, and DST
+
+`#{time_until}` counts down to `@time_revamped_countdown_target`, written as `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`. `#{time_elapsed}` is a stopwatch since the last mark; bind a key with `@time_revamped_mark_key` or use the menu to set the mark. `#{time_dst}` warns when a clock change is coming, for example `DST in 3d`, watching `@time_revamped_dst_zone` over the next `@time_revamped_dst_horizon` days. All of this is plain integer math over a single seamed clock read, so it behaves identically on macOS and Linux and never blocks the status line.
+
+### The actions menu
+
+`prefix + T` opens a menu to toggle 12/24-hour time, open a calendar popup, copy the current timestamp as ISO 8601 or epoch to the tmux buffer and the system clipboard, set the stopwatch mark, and run a `doctor` report that checks every configured timezone name for typos. The popup and clipboard each route through a single seam, and the calendar popup needs tmux 3.2 or newer. Rebind or disable the menu with `@time_revamped_menu_key`, and bind the individual actions directly with `@time_revamped_calendar_key`, `@time_revamped_copy_key`, and `@time_revamped_mark_key`.
 
 ## Theme color suggestions
 

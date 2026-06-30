@@ -23,11 +23,27 @@ source "${PLUGIN_DIR}/src/lib/time/time.sh"
 source "${PLUGIN_DIR}/src/lib/time/render.sh"
 # shellcheck source=/dev/null
 source "${PLUGIN_DIR}/src/lib/time/geoip.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/time/datemath.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/time/extras.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/time/decorate.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/time/tzoffset.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/time/doctor.sh"
+# shellcheck source=/dev/null
+source "${PLUGIN_DIR}/src/lib/tmux/tmux-cmd.sh"
+
+# Path the prefix menu uses to call back into this dispatcher.
+export TIME_DISPATCH="${PLUGIN_DIR}/src/time.sh"
 
 # read_zones -> the configured world clocks, formatted and joined.
 read_zones() {
   local zones compact sep out="" tz hour tm abbr dow weekend entry wk_override tpat
   local labels_csv custom label i
+  local rel wh ws we primary lY lM lD zY zM zD badge iw ip
   zones=$(get_tmux_option "@time_revamped_timezones" "")
   [[ -z "${zones}" ]] && return 0
   compact=$(get_tmux_option "@time_revamped_compact" "0")
@@ -43,13 +59,22 @@ read_zones() {
   # clock, so it falls back to 24H.
   tpat=$(time_strftime "$(get_tmux_option "@time_revamped_time_format" "24H")")
   [[ -z "${tpat}" ]] && tpat="%H:%M"
+  # Optional decorations: a +1d/-1d badge per zone, dimming a zone outside
+  # working hours, and a highlight on the primary zone (zero-based index).
+  rel=$(get_tmux_option "@time_revamped_relative_day" "0")
+  wh=$(get_tmux_option "@time_revamped_work_hours" "0")
+  ws=$(get_tmux_option "@time_revamped_work_start" "9")
+  we=$(get_tmux_option "@time_revamped_work_end" "17")
+  primary=$(get_tmux_option "@time_revamped_primary" "")
+  IFS='|' read -r lY lM lD < <(_now_local "%Y|%m|%d")
 
   local list=() IFS=$', '
   read -ra list <<< "${zones}"
   for (( i = 0; i < ${#list[@]}; i++ )); do
     tz="${list[i]}"
     [[ -z "${tz}" ]] && continue
-    IFS='|' read -r hour tm abbr dow < <(_now_tz "${tz}" "%H|${tpat}|%Z|%u") || continue
+    IFS='|' read -r hour tm abbr dow zY zM zD \
+      < <(_now_tz "${tz}" "%H|${tpat}|%Z|%u|%Y|%m|%d") || continue
     [[ -z "${tm}" ]] && continue
     [[ "${hour}" =~ ^[0-9]+$ ]] && hour=$(( 10#${hour} )) || hour=0
     if [[ "${wk_override}" == "1" ]]; then
@@ -65,6 +90,15 @@ read_zones() {
       label="${custom:-${abbr}}"
       entry=$(time_render_zone_full "${label}" "${tm}" "${hour}" "${weekend}")
     fi
+    badge=""
+    [[ "${rel}" == "1" ]] && badge=$(relative_day_badge "${zY}" "${zM}" "${zD}" "${lY}" "${lM}" "${lD}")
+    iw=1
+    if [[ "${wh}" == "1" ]]; then
+      in_work_hours "${hour}" "${ws}" "${we}" && iw=1 || iw=0
+    fi
+    ip=0
+    [[ -n "${primary}" && "${primary}" == "${i}" ]] && ip=1
+    entry=$(zone_decorate "${entry}" "${badge}" "${ip}" "${iw}")
     [[ -n "${out}" ]] && out="${out}${sep}"
     out="${out}${entry}"
   done
@@ -134,6 +168,21 @@ main() {
     clock)    read_clock ;;
     zones)    read_zones ;;
     local)    read_local ;;
+    until)    read_until ;;
+    elapsed)  read_elapsed ;;
+    epoch)    read_epoch ;;
+    iso)      read_iso ;;
+    offset)   read_offset ;;
+    week)     read_week ;;
+    doy)      read_doy ;;
+    dst)      read_dst ;;
+    overlap)  read_overlap ;;
+    doctor)   read_doctor ;;
+    mark)     time_set_mark ;;
+    copy)     time_copy_timestamp "${2:-iso}" ;;
+    calendar) time_calendar_popup ;;
+    menu)     time_menu ;;
+    toggle-format) time_toggle_format ;;
     *)        return 0 ;;
   esac
 }

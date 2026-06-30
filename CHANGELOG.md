@@ -5,6 +5,36 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-30
+
+### Added
+
+- Developer time formats: `#{time_epoch}` (unix seconds), `#{time_iso}`
+  (ISO 8601 with a colon in the offset), and `#{time_offset}` (the local UTC
+  offset as `UTC+02:00`).
+- Calendar fields: `#{time_week}` (ISO 8601 week number) and `#{time_doy}`
+  (day of the year).
+- `#{time_until}`: a countdown to `@time_revamped_countdown_target`, with an
+  optional label and a "done" message once the target passes.
+- `#{time_elapsed}`: a stopwatch since the mark stored by the mark action.
+- `#{time_dst}`: a "DST in Nd" warning when a zone's UTC offset is about to
+  change within `@time_revamped_dst_horizon` days.
+- `#{time_overlap}`: the shared working-hours window across the configured
+  zones, expressed in the local zone, or a "no overlap" message.
+- World-clock decorations: a relative-day badge per zone
+  (`@time_revamped_relative_day`), dimming a zone outside working hours
+  (`@time_revamped_work_hours` with `@time_revamped_work_start` and
+  `@time_revamped_work_end`), and a highlight on the primary zone
+  (`@time_revamped_primary`).
+- Interactive actions, bound through a mockable seam: a prefix menu
+  (`prefix + T`), a calendar popup, copy the timestamp to the tmux buffer and
+  the system clipboard, set a stopwatch mark, and a `doctor` report that
+  validates the configured timezone names.
+
+All date arithmetic is pure shell, identical on BSD and GNU `date`, and every
+clock read sits behind a seam so the work stays non-blocking and the live model
+is unchanged.
+
 ## [1.1.1] - 2026-06-23
 
 ### Changed
